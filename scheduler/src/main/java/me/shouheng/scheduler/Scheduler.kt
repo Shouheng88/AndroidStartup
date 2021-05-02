@@ -58,6 +58,7 @@ class Scheduler {
 
     /** Launch the scheduler. [context] here should be the global context. */
     fun launch(context: Context) {
+        // TODO if we get a new instance every time, then we don't need to clear jobs.
         val jobs = mutableListOf<ISchedulerJob>()
         jobs.addAll(schedulerJobs)
         schedulerJobs.clear()
