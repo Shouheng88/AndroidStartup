@@ -8,6 +8,7 @@ import me.shouheng.scheduler.ThreadMode
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
+// TODO don't need to extends runnable, we can call its method directly instead of invoked in a thread pool.
 /** The job for dispatcher. */
 interface IDispatcherJob : Runnable {
 
