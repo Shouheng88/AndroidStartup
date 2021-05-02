@@ -53,6 +53,7 @@ class DispatcherJob(
 
     override fun notifyJobFinished(job: IDispatcherJob) {
         if (waiting.decrementAndGet() == 0) {
+            // TODO call `run` instead of execute on executor
             executor.execute(this)
         }
     }
