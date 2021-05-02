@@ -1,0 +1,3 @@
+include ':app', ':startup', ':scheduler'
+project(':startup').projectDir = new File('../startup')
+project(':scheduler').projectDir = new File('../scheduler')
