@@ -16,12 +16,13 @@ interface Logger {
     fun e(msg: String, th: Throwable? = null)
 }
 
+// TODO schelder logger intead of startup
 /** The logger for Android startup. */
 object StartupLogger: Logger {
 
     private const val TAG = "AndroidStartup"
 
-    /** Enable logger or note. */
+    /** Enable logger or not. */
     var enable = true
 
     override fun v(msg: String) {
