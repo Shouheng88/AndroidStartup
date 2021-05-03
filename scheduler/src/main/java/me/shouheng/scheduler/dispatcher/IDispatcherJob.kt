@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import me.shouheng.scheduler.ISchedulerJob
+import me.shouheng.scheduler.SchedulerException
 import me.shouheng.scheduler.ThreadMode
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
@@ -49,16 +50,20 @@ class DispatcherJob(
             children.forEach { it.notifyJobFinished(this) }
         }
 
-        if (job.threadMode() == ThreadMode.MAIN) {
-            // Cases for main thread.
-            if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                realJob()
+        try {
+            if (job.threadMode() == ThreadMode.MAIN) {
+                // Cases for main thread.
+                if (Thread.currentThread() == Looper.getMainLooper().thread) {
+                    realJob()
+                } else {
+                    Handler(Looper.getMainLooper()).post { realJob() }
+                }
             } else {
-                Handler(Looper.getMainLooper()).post { realJob() }
+                // Cases for background thread.
+                executor.execute { realJob() }
             }
-        } else {
-            // Cases for background thread.
-            executor.execute { realJob() }
+        } catch (e: Throwable) {
+            throw SchedulerException(e)
         }
     }
 

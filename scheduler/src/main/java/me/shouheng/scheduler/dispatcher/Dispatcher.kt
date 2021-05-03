@@ -3,6 +3,7 @@ package me.shouheng.scheduler.dispatcher
 import android.content.Context
 import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.Logger
+import me.shouheng.scheduler.SchedulerException
 import java.util.concurrent.Executor
 
 /** The job dispatcher. */
@@ -41,10 +42,7 @@ object Dispatcher : IDispatcher {
         this.executor = executor
 
         // step 1: check circle.
-        val point = checkCycle()
-        if (point != null) {
-            throw IllegalStateException("Cycle detected for ${point.javaClass.name}.")
-        }
+        checkCycle()
 
         // step 2: prepare for dispatcher jobs.
         buildDispatcherJobs()
@@ -54,9 +52,40 @@ object Dispatcher : IDispatcher {
     }
 
     /** Check if there is a cycle. */
-    private fun checkCycle(): ISchedulerJob? {
-        // TODO
-        return null
+    private fun checkCycle() {
+        val checking = mutableSetOf<Class<out ISchedulerJob>>()
+        val checked = mutableSetOf<Class<out ISchedulerJob>>()
+        val schedulerMap = mutableMapOf<Class<ISchedulerJob>, ISchedulerJob>()
+        schedulerJobs.forEach { schedulerMap[it.javaClass] = it }
+        schedulerJobs.forEach { schedulerJob ->
+            checkCycleForJob(schedulerJob, schedulerMap, checking, checked)
+        }
+    }
+
+    /** Check cycle for given job. */
+    private fun checkCycleForJob(
+        schedulerJob: ISchedulerJob,
+        map: Map<Class<ISchedulerJob>, ISchedulerJob>,
+        checking: MutableSet<Class<out ISchedulerJob>>,
+        checked: MutableSet<Class<out ISchedulerJob>>
+    ) {
+        if (checking.contains(schedulerJob.javaClass)) {
+            // Cycle detected.
+            throw SchedulerException("Cycle detected for ${schedulerJob.javaClass.name}.")
+        }
+        if (!checked.contains(schedulerJob.javaClass)) {
+            checking.add(schedulerJob.javaClass)
+            if (schedulerJob.dependencies().isNotEmpty()) {
+                schedulerJob.dependencies().forEach {
+                    if (!checked.contains(it)) {
+                        val job = map[it]!!
+                        checkCycleForJob(job, map, checking, checked)
+                    }
+                }
+            }
+            checking.remove(schedulerJob.javaClass)
+            checked.add(schedulerJob.javaClass)
+        }
     }
 
     /** Build roots */
