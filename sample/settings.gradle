@@ -1,3 +1,5 @@
-include ':app', ':startup', ':scheduler'
+include ':app', ':startup', ':scheduler', ':startup-compiler', ':startup-annotation'
 project(':startup').projectDir = new File('../startup')
 project(':scheduler').projectDir = new File('../scheduler')
+project(':startup-compiler').projectDir = new File('../startup-compiler')
+project(':startup-annotation').projectDir = new File('../startup-annotation')
