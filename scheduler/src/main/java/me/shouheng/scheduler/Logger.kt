@@ -16,11 +16,10 @@ interface Logger {
     fun e(msg: String, th: Throwable? = null)
 }
 
-// TODO schelder logger intead of startup
 /** The logger for Android startup. */
-object StartupLogger: Logger {
+object SchedulerLogger: Logger {
 
-    private const val TAG = "AndroidStartup"
+    private const val TAG = "Scheduler"
 
     /** Enable logger or not. */
     var enable = true

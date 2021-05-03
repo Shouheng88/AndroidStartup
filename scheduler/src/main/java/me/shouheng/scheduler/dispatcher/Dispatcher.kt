@@ -50,7 +50,7 @@ object Dispatcher : IDispatcher {
         buildDispatcherJobs()
 
         // step 3: dispatch
-        roots.forEach { it.run() }
+        roots.forEach { it.execute() }
     }
 
     /** Check if there is a cycle. */

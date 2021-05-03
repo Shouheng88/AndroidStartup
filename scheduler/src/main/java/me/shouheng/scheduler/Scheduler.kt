@@ -34,7 +34,7 @@ class Scheduler {
         executor = ThreadPoolExecutor(
             CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
             poolWorkQueue, threadFactory)
-        logger = StartupLogger
+        logger = SchedulerLogger
         dispatcher = Dispatcher
     }
 
@@ -58,11 +58,7 @@ class Scheduler {
 
     /** Launch the scheduler. [context] here should be the global context. */
     fun launch(context: Context) {
-        // TODO if we get a new instance every time, then we don't need to clear jobs.
-        val jobs = mutableListOf<ISchedulerJob>()
-        jobs.addAll(schedulerJobs)
-        schedulerJobs.clear()
-        dispatcher.dispatch(context, jobs, executor, logger)
+        dispatcher.dispatch(context, schedulerJobs, executor, logger)
     }
 
     companion object {
@@ -71,6 +67,7 @@ class Scheduler {
         private val MAXIMUM_POOL_SIZE = CPU_COUNT * 2 + 1
         private const val KEEP_ALIVE_SECONDS = 30L
 
+        /** Get a new instance of scheduler. */
         fun newInstance() = Scheduler()
     }
 }

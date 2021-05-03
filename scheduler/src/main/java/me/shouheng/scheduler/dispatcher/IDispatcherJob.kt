@@ -8,9 +8,11 @@ import me.shouheng.scheduler.ThreadMode
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
-// TODO don't need to extends runnable, we can call its method directly instead of invoked in a thread pool.
 /** The job for dispatcher. */
-interface IDispatcherJob : Runnable {
+interface IDispatcherJob {
+
+    /** Execute the job. */
+    fun execute()
 
     /** Add parent job. */
     fun addParent(job: IDispatcherJob)
@@ -39,6 +41,27 @@ class DispatcherJob(
     private val children = mutableListOf<IDispatcherJob>()
     private var waiting = AtomicInteger(0)
 
+    override fun execute() {
+        val realJob = {
+            // Run the task.
+            job.run(context)
+            // Handle for children.
+            children.forEach { it.notifyJobFinished(this) }
+        }
+
+        if (job.threadMode() == ThreadMode.MAIN) {
+            // Cases for main thread.
+            if (Thread.currentThread() == Looper.getMainLooper().thread) {
+                realJob()
+            } else {
+                Handler(Looper.getMainLooper()).post { realJob() }
+            }
+        } else {
+            // Cases for background thread.
+            executor.execute { realJob() }
+        }
+    }
+
     override fun addParent(job: IDispatcherJob) {
         parents.add(job)
         waiting.addAndGet(1)
@@ -54,29 +77,8 @@ class DispatcherJob(
 
     override fun notifyJobFinished(job: IDispatcherJob) {
         if (waiting.decrementAndGet() == 0) {
-            // TODO call `run` instead of execute on executor
-            executor.execute(this)
-        }
-    }
-
-    override fun run() {
-        val realJob = {
-            // Run the task.
-            job.run(context)
-            // Handle for children.
-            children.forEach { it.notifyJobFinished(this) }
-        }
-
-        // Cases for main thread.
-        if (job.threadMode() == ThreadMode.MAIN) {
-            if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                realJob()
-            } else {
-                Handler(Looper.getMainLooper()).post { realJob() }
-            }
-        } else {
-            // Cases for background thread.
-            executor.execute { realJob() }
+            // All dependencies finished, commit the job.
+            execute()
         }
     }
 }
