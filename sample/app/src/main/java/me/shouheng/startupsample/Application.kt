@@ -19,6 +19,8 @@ class Application : MultiDexApplication() {
 //            DependentBlockingBackgroundJob,
 //            BlockingBackgroundJob
 //        ).launch()
+
+        AndroidStartup.newInstance(this).scanAnnotations().launch()
     }
 
     companion object {

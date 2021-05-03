@@ -78,7 +78,8 @@ object Dispatcher : IDispatcher {
             if (schedulerJob.dependencies().isNotEmpty()) {
                 schedulerJob.dependencies().forEach {
                     if (!checked.contains(it)) {
-                        val job = map[it]!!
+                        val job = map[it]
+                            ?: throw SchedulerException(String.format("dependency [%s] not found", it.name))
                         checkCycleForJob(job, map, checking, checked)
                     }
                 }

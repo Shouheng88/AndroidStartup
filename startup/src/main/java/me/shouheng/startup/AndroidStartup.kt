@@ -14,6 +14,8 @@ class AndroidStartup constructor(val context: Context) {
 
     /** The job scheduler. */
     private val scheduler = Scheduler()
+    /** The job hunter. */
+    private var jobHunter: JobHunter? = null
 
     /** Set the custom executor. */
     fun setExecutor(executor: Executor): AndroidStartup {
@@ -60,6 +62,21 @@ class AndroidStartup constructor(val context: Context) {
             throw AndroidStartupException(exception)
         } catch (exception: ClassNotFoundException) {
             throw AndroidStartupException(exception)
+        }
+        return this
+    }
+
+    /** Scan annotations for job by [Job]. */
+    fun scanAnnotations(): AndroidStartup {
+        try {
+            if (jobHunter == null) {
+                val hunterImplClass = Class.forName("${JobHunter::class.java.name}Impl")
+                jobHunter = hunterImplClass.newInstance() as JobHunter
+            }
+            val jobs = jobHunter?.hunt()
+            jobs?.let { scheduler.jobs(*jobs.toTypedArray()) }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return this
     }

@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.ThreadMode
+import me.shouheng.startup.annotation.StartupJob
 import me.shouheng.startupsample.MainActivity
 import me.shouheng.startupsample.R
 import me.shouheng.uix.common.bean.TextStyleBean
@@ -15,6 +16,7 @@ import me.shouheng.utils.stability.L
 import me.shouheng.utils.store.PathUtils
 import java.io.File
 
+@StartupJob
 class CrashHelperInitializeJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.MAIN

@@ -81,4 +81,5 @@ dependencies {
     // modules
     implementation project(path: ':scheduler')
     implementation project(path: ':startup')
+    kapt project(':startup-compiler')
 }

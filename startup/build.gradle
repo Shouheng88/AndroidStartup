@@ -37,5 +37,4 @@ dependencies {
     // modules
     implementation project(path: ':scheduler')
     api project(path: ':startup-annotation')
-    annotationProcessor project(':startup-compiler')
 }

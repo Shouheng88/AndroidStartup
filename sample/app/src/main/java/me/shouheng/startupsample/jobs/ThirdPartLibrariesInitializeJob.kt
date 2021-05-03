@@ -4,11 +4,13 @@ import android.app.Application
 import android.content.Context
 import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.ThreadMode
+import me.shouheng.startup.annotation.StartupJob
 import me.shouheng.startupsample.BuildConfig
 import me.shouheng.uix.common.UIX
 import me.shouheng.utils.stability.L
 import me.shouheng.vmlib.VMLib
 
+@StartupJob
 class ThirdPartLibrariesInitializeJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.MAIN
