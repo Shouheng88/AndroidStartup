@@ -41,8 +41,8 @@ object Dispatcher : IDispatcher {
         this.schedulerJobs = jobs
         this.executor = executor
 
-        // step 1: check circle.
-        checkCycle()
+        // step 1: check dependencies, cycle and miss.
+        checkDependencies()
 
         // step 2: prepare for dispatcher jobs.
         buildDispatcherJobs()
@@ -52,18 +52,18 @@ object Dispatcher : IDispatcher {
     }
 
     /** Check if there is a cycle. */
-    private fun checkCycle() {
+    private fun checkDependencies() {
         val checking = mutableSetOf<Class<out ISchedulerJob>>()
         val checked = mutableSetOf<Class<out ISchedulerJob>>()
         val schedulerMap = mutableMapOf<Class<ISchedulerJob>, ISchedulerJob>()
         schedulerJobs.forEach { schedulerMap[it.javaClass] = it }
         schedulerJobs.forEach { schedulerJob ->
-            checkCycleForJob(schedulerJob, schedulerMap, checking, checked)
+            checkDependenciesReal(schedulerJob, schedulerMap, checking, checked)
         }
     }
 
-    /** Check cycle for given job. */
-    private fun checkCycleForJob(
+    /** Check dependencies for given job: miss and cycle. */
+    private fun checkDependenciesReal(
         schedulerJob: ISchedulerJob,
         map: Map<Class<ISchedulerJob>, ISchedulerJob>,
         checking: MutableSet<Class<out ISchedulerJob>>,
@@ -80,7 +80,7 @@ object Dispatcher : IDispatcher {
                     if (!checked.contains(it)) {
                         val job = map[it]
                             ?: throw SchedulerException(String.format("dependency [%s] not found", it.name))
-                        checkCycleForJob(job, map, checking, checked)
+                        checkDependenciesReal(job, map, checking, checked)
                     }
                 }
             }

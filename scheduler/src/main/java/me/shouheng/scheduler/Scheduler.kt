@@ -7,7 +7,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /** The scheduler */
-class Scheduler {
+class Scheduler private constructor() {
 
     private var poolWorkQueue = LinkedBlockingQueue<Runnable>(128)
 

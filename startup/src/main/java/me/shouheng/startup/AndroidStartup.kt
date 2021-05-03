@@ -13,7 +13,7 @@ import java.util.concurrent.Executor
 class AndroidStartup constructor(val context: Context) {
 
     /** The job scheduler. */
-    private val scheduler = Scheduler()
+    private val scheduler = Scheduler.newInstance()
     /** The job hunter. */
     private var jobHunter: JobHunter? = null
 
