@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="me.shouheng.startupsample">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -25,6 +26,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge"
+            android:name="me.shouheng.startup.AndroidStartupProvider">
+            <meta-data android:name="me.shouheng.startupsample.jobs.BlockingBackgroundJob"
+                android:value="android.startup" />
+            <meta-data android:name="me.shouheng.startupsample.jobs.CrashHelperInitializeJob"
+                android:value="android.startup" />
+            <meta-data android:name="me.shouheng.startupsample.jobs.DependentBlockingBackgroundJob"
+                android:value="android.startup" />
+            <meta-data android:name="me.shouheng.startupsample.jobs.ThirdPartLibrariesInitializeJob"
+                android:value="android.startup" />
+        </provider>
     </application>
 
 </manifest>

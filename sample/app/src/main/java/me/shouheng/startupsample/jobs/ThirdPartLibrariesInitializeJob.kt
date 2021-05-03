@@ -9,7 +9,7 @@ import me.shouheng.uix.common.UIX
 import me.shouheng.utils.stability.L
 import me.shouheng.vmlib.VMLib
 
-object ThirdPartLibrariesInitializeJob : ISchedulerJob {
+class ThirdPartLibrariesInitializeJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.MAIN
 

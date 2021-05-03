@@ -51,7 +51,7 @@ class Scheduler {
     }
 
     /** To specify jobs for the scheduler. */
-    fun <T : ISchedulerJob> jobs(vararg jobs: T): Scheduler {
+    fun jobs(vararg jobs: ISchedulerJob): Scheduler {
         this.schedulerJobs.addAll(jobs)
         return this
     }

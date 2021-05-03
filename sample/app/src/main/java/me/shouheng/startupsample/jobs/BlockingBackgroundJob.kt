@@ -5,7 +5,7 @@ import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.ThreadMode
 import me.shouheng.utils.stability.L
 
-object BlockingBackgroundJob : ISchedulerJob {
+class BlockingBackgroundJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.BACKGROUND
 

@@ -2,7 +2,7 @@ package me.shouheng.startupsample
 
 import android.app.Application
 import android.support.multidex.MultiDexApplication
-import me.shouheng.scheduler.Scheduler
+import me.shouheng.startup.AndroidStartup
 import me.shouheng.startupsample.jobs.BlockingBackgroundJob
 import me.shouheng.startupsample.jobs.CrashHelperInitializeJob
 import me.shouheng.startupsample.jobs.DependentBlockingBackgroundJob
@@ -13,12 +13,12 @@ class Application : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         application = this
-        Scheduler.newInstance().jobs(
-            CrashHelperInitializeJob,
-            ThirdPartLibrariesInitializeJob,
-            DependentBlockingBackgroundJob,
-            BlockingBackgroundJob
-        ).launch(this)
+//        AndroidStartup.newInstance(this).jobs(
+//            CrashHelperInitializeJob,
+//            ThirdPartLibrariesInitializeJob,
+//            DependentBlockingBackgroundJob,
+//            BlockingBackgroundJob
+//        ).launch()
     }
 
     companion object {

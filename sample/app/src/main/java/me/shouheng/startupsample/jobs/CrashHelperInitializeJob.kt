@@ -15,7 +15,7 @@ import me.shouheng.utils.stability.L
 import me.shouheng.utils.store.PathUtils
 import java.io.File
 
-object CrashHelperInitializeJob : ISchedulerJob {
+class CrashHelperInitializeJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.MAIN
 

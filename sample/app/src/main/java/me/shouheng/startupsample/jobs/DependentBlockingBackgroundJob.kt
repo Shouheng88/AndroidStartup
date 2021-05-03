@@ -6,11 +6,11 @@ import me.shouheng.scheduler.ThreadMode
 import me.shouheng.utils.ktx.toast
 import me.shouheng.utils.stability.L
 
-object DependentBlockingBackgroundJob : ISchedulerJob {
+class DependentBlockingBackgroundJob : ISchedulerJob {
 
     override fun threadMode(): ThreadMode = ThreadMode.MAIN
 
-    override fun dependencies(): List<Class<out ISchedulerJob>> = listOf(BlockingBackgroundJob.javaClass)
+    override fun dependencies(): List<Class<out ISchedulerJob>> = listOf(BlockingBackgroundJob::class.java)
 
     override fun run(context: Context) {
         toast("DependentBlockingBackgroundJob done!")
