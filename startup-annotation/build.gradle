@@ -1,5 +1,7 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
 java {
@@ -11,4 +13,105 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.squareup:javapoet:1.8.0'
     compile 'com.google.auto.service:auto-service:1.0-rc2'
+}
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    exclude "**/R.class"
+    exclude "**/BuildConfig.class"
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+publishing {
+    // 定义发布什么
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'com.github.Shouheng88'
+            artifactId 'startup-annotation'
+            version rootProject.ext.releaseVersion
+            // Two artifacts, the `aar` and the sources
+            artifact("$buildDir/libs/${project.getName()}.jar")
+            artifact androidSourcesJar
+            artifact javadocJar
+            pom {
+                // 构件名称，区别于 artifactId，可以理解为 artifactName
+                name = 'startup-annotation'
+                // 构件描述
+                description = 'startup annotation'
+                // 构件主页
+                url = 'https://github.com/Shouheng88/AndroidStartup'
+                // 许可证名称和地址
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                // 开发者信息
+                developers {
+                    developer {
+                        name = 'ShouHeng'
+                        email = 'shouheng2015@gmail.com'
+                    }
+                }
+                // 版本控制仓库地址
+                scm {
+                    url = 'https://github.com/Shouheng88/AndroidStartup'
+                    connection = 'scm:git:github.com/Shouheng88/AndroidStartup.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/Shouheng88/AndroidStartup.git'
+                }
+                // A slightly hacky fix so that your POM will include any transitive dependencies
+                // that your library builds upon
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    project.configurations.all { configuration ->
+                        def name = configuration.name
+                        if (name != "implementation" && name != "compile" && name != "api") {
+                            return
+                        }
+                        println(configuration)
+                        configuration.dependencies.each {
+                            println(it)
+                            if (it.name == "unspecified") {
+                                // 忽略无法识别的
+                                return
+                            }
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', it.group)
+                            dependencyNode.appendNode('artifactId', it.name)
+                            dependencyNode.appendNode('version', it.version)
+                            if (name == "api" || name == "compile") {
+                                dependencyNode.appendNode("scope", "compile")
+                            } else { // implementation
+                                dependencyNode.appendNode("scope", "runtime")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // 定义发布到哪里
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            // You only need this if you want to publish snapshots, otherwise just set the URL
+            // to the release repo directly
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                // 这里就是之前在 issues.sonatype.org 注册的账号
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications
 }
