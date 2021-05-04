@@ -29,14 +29,16 @@ public final class MessagerLogger implements ILogger {
     @Override
     public void error(CharSequence error) {
         if (Utils.isNotEmpty(error)) {
-            msg.printMessage(Diagnostic.Kind.ERROR, Consts.PREFIX_OF_LOGGER + "An exception is encountered, [" + error + "]");
+            msg.printMessage(Diagnostic.Kind.ERROR, Consts.PREFIX_OF_LOGGER
+                    + "An exception is encountered, [" + error + "]");
         }
     }
 
     @Override
     public void error(Throwable error) {
         if (null != error) {
-            msg.printMessage(Diagnostic.Kind.ERROR, Consts.PREFIX_OF_LOGGER + "An exception is encountered, [" + error.getMessage() + "]" + "\n" + formatStackTrace(error.getStackTrace()));
+            msg.printMessage(Diagnostic.Kind.ERROR, Consts.PREFIX_OF_LOGGER
+                    + "An exception is encountered, [" + error.getMessage() + "]" + "\n" + formatStackTrace(error.getStackTrace()));
         }
     }
 
