@@ -1,4 +1,6 @@
-# AndroidStartup
+<h1 align="center">
+  Android Startup, schedule your startup jobs
+</h1>
 
 <p align="center">
   <a href="http://www.apache.org/licenses/LICENSE-2.0">
