@@ -14,10 +14,10 @@ class Application : MultiDexApplication() {
         super.onCreate()
         application = this
 //        AndroidStartup.newInstance(this).jobs(
-//            CrashHelperInitializeJob,
-//            ThirdPartLibrariesInitializeJob,
-//            DependentBlockingBackgroundJob,
-//            BlockingBackgroundJob
+//            CrashHelperInitializeJob(),
+//            ThirdPartLibrariesInitializeJob(),
+//            DependentBlockingBackgroundJob(),
+//            BlockingBackgroundJob()
 //        ).launch()
 
         AndroidStartup.newInstance(this).scanAnnotations().launch()
