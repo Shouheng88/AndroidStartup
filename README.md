@@ -6,9 +6,7 @@
   <a href="http://www.apache.org/licenses/LICENSE-2.0">
     <img src="https://img.shields.io/hexpm/l/plug.svg" alt="License" />
   </a>
-  <a href="https://bintray.com/beta/#/easymark/Android/vmlib-core?tab=overview">
-    <img src="https://img.shields.io/maven-metadata/v/https/s01.oss.sonatype.org/service/local/repo_groups/public/content/com/github/Shouheng88/startup/maven-metadata.xml.svg" alt="Version" />
-  </a>
+  <img src="https://img.shields.io/maven-metadata/v/https/s01.oss.sonatype.org/service/local/repo_groups/public/content/com/github/Shouheng88/startup/maven-metadata.xml.svg" alt="Version" />
   <a href="https://www.codacy.com/gh/Shouheng88/AndroidStartup/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Shouheng88/AndroidStartup&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/99d198d3eb2446bd864946f35c13bcaa" alt="Code Grade"/>
   </a>
