@@ -58,7 +58,7 @@ implementation "com.github.Shouheng88:scheduler:$latest-version"
 
 You have multiple ways to use AndroidStartup.
 
-### Implement ISchedulerJob to deinfe your job
+### Implement ISchedulerJob to define your job
 
 The `ISchedulerJob` interface is used to define the job in scheduler. You have to implement its three methods,
 
