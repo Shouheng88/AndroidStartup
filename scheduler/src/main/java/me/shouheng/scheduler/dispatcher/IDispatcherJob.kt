@@ -6,6 +6,7 @@ import android.os.Looper
 import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.SchedulerException
 import me.shouheng.scheduler.ThreadMode
+import me.shouheng.scheduler.process.IProcessMatcher
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -35,18 +36,23 @@ interface IDispatcherJob {
 class DispatcherJob(
     private val context: Context,
     private val executor: Executor,
+    private val matcher: IProcessMatcher,
     private val job: ISchedulerJob
 ): IDispatcherJob {
 
     private val parents = mutableListOf<IDispatcherJob>()
     private val children = mutableListOf<IDispatcherJob>()
     private var waiting = AtomicInteger(0)
+    private val mainThreadHandler = Handler(Looper.getMainLooper())
 
     override fun execute() {
         val realJob = {
-            // Run the task.
-            job.run(context)
-            // Handle for children.
+            // Run the task if match given process.
+            if (matcher.match(job.targetProcess())) {
+                job.run(context)
+            }
+            // No matter the task invoked in current process or not,
+            // its children will be notified after that.
             children.forEach { it.notifyJobFinished(this) }
         }
 
@@ -54,13 +60,13 @@ class DispatcherJob(
             if (job.threadMode() == ThreadMode.MAIN) {
                 // Cases for main thread.
                 if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                    realJob()
+                    realJob.invoke()
                 } else {
-                    Handler(Looper.getMainLooper()).post { realJob() }
+                    mainThreadHandler.post { realJob.invoke() }
                 }
             } else {
                 // Cases for background thread.
-                executor.execute { realJob() }
+                executor.execute { realJob.invoke() }
             }
         } catch (e: Throwable) {
             throw SchedulerException(e)

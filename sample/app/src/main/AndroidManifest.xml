@@ -40,6 +40,8 @@
 <!--            <meta-data android:name="me.shouheng.startupsample.jobs.ThirdPartLibrariesInitializeJob"-->
 <!--                android:value="android.startup" />-->
 <!--        </provider>-->
+        <service android:name=".RemoteService"
+            android:process=":another"/>
     </application>
 
 </manifest>

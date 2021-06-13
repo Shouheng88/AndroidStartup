@@ -4,6 +4,7 @@ import android.content.Context
 import me.shouheng.scheduler.ISchedulerJob
 import me.shouheng.scheduler.Logger
 import me.shouheng.scheduler.SchedulerException
+import me.shouheng.scheduler.process.IProcessMatcher
 import java.util.concurrent.Executor
 
 /** The job dispatcher. */
@@ -14,18 +15,20 @@ interface IDispatcher  {
         context: Context,
         jobs: List<ISchedulerJob>,
         executor: Executor,
+        matcher: IProcessMatcher,
         logger: Logger
     )
 
 }
 
 /** The default job dispatcher. */
-object Dispatcher : IDispatcher {
+class Dispatcher : IDispatcher {
 
     private lateinit var globalContext: Context
     private lateinit var logger: Logger
     private lateinit var executor: Executor
     private lateinit var schedulerJobs: List<ISchedulerJob>
+    private lateinit var matcher: IProcessMatcher
 
     /** Roots are those tasks don't depend on any other jobs. */
     private var roots = mutableListOf<IDispatcherJob>()
@@ -34,12 +37,14 @@ object Dispatcher : IDispatcher {
         context: Context,
         jobs: List<ISchedulerJob>,
         executor: Executor,
+        matcher: IProcessMatcher,
         logger: Logger
     ) {
         this.globalContext = context
         this.logger = logger
         this.schedulerJobs = jobs
         this.executor = executor
+        this.matcher = matcher
 
         // step 1: check dependencies, cycle and miss.
         checkDependencies()
@@ -96,7 +101,7 @@ object Dispatcher : IDispatcher {
         // Build the map from scheduler class type to dispatcher job.
         val map =  mutableMapOf<Class<ISchedulerJob>, DispatcherJob>()
         schedulerJobs.forEach {
-            val dispatcherJob = DispatcherJob(this.globalContext, executor, it)
+            val dispatcherJob = DispatcherJob(this.globalContext, executor, matcher, it)
             map[it.javaClass] = dispatcherJob
         }
 

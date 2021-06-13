@@ -10,7 +10,9 @@ class AndroidStartupProvider : ContentProvider() {
 
     override fun onCreate(): Boolean {
         if (context != null) {
-            AndroidStartup.newInstance(context!!).scanComponents().launch()
+            launchStartup(context!!) {
+                scanComponents()
+            }
         } else {
             throw AndroidStartupException("Context cannot be null.")
         }
