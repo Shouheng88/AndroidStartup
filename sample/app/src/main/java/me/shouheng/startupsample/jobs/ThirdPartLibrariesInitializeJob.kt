@@ -7,6 +7,7 @@ import me.shouheng.scheduler.ThreadMode
 import me.shouheng.startup.annotation.StartupJob
 import me.shouheng.startupsample.BuildConfig
 import me.shouheng.uix.common.UIX
+import me.shouheng.utils.ktx.toast
 import me.shouheng.utils.stability.L
 import me.shouheng.vmlib.VMLib
 
@@ -23,5 +24,6 @@ class ThirdPartLibrariesInitializeJob : ISchedulerJob {
         UIX.setDebug(BuildConfig.DEBUG)
         L.getConfig().setLogSwitch(BuildConfig.DEBUG)
         L.d("ThirdPartLibrariesInitializeJob done! ${Thread.currentThread()} ${System.currentTimeMillis()}")
+        toast("ThirdPartLibrariesInitializeJob done!")
     }
 }

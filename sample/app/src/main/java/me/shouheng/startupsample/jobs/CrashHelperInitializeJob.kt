@@ -11,6 +11,7 @@ import me.shouheng.startupsample.R
 import me.shouheng.uix.common.bean.TextStyleBean
 import me.shouheng.uix.pages.CrashReportActivity
 import me.shouheng.utils.ktx.stringOf
+import me.shouheng.utils.ktx.toast
 import me.shouheng.utils.stability.CrashHelper
 import me.shouheng.utils.stability.L
 import me.shouheng.utils.store.PathUtils
@@ -37,6 +38,7 @@ class CrashHelperInitializeJob : ISchedulerJob {
                 .launch()
         }
         L.d("CrashHelperInitializeJob done! ${Thread.currentThread()} ${System.currentTimeMillis()}")
+        toast("CrashHelperInitializeJob done!")
     }
 
 }
