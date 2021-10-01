@@ -90,7 +90,7 @@ public class StartupProcessor extends BaseProcessor {
                     map.put(element.toString(), annotatedClass);
                 }
             } else {
-                logger.error(String.format("Illegal @Job annotation for element %s", element.toString()));
+                logger.error(String.format("Illegal @StartupJob annotation for element %s", element.toString()));
             }
         }
     }

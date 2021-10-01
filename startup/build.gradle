@@ -38,9 +38,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     // modules
     api project(path: ':scheduler')
-//    api 'com.github.Shouheng88:scheduler:2.0'
+//    api "com.github.Shouheng88:scheduler:${rootProject.ext.releaseVersion}"
     api project(path: ':startup-annotation')
-//    api 'com.github.Shouheng88:startup-annotation:1.0'
+//    api "com.github.Shouheng88:startup-annotation:${rootProject.ext.releaseVersion}"
 }
 
 task androidSourcesJar(type: Jar) {
