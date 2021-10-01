@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import me.shouheng.scheduler.ISchedulerJob
-import me.shouheng.scheduler.ThreadMode
 import me.shouheng.startup.annotation.StartupJob
 import me.shouheng.startupsample.MainActivity
 import me.shouheng.startupsample.R
@@ -17,12 +16,10 @@ import me.shouheng.utils.stability.L
 import me.shouheng.utils.store.PathUtils
 import java.io.File
 
-@StartupJob
-class CrashHelperInitializeJob : ISchedulerJob {
+/** Crash library initialize job. */
+@StartupJob class CrashHelperInitializeJob : ISchedulerJob {
 
-    override fun threadMode(): ThreadMode = ThreadMode.MAIN
-
-    override fun dependencies(): List<Class<out ISchedulerJob>> = listOf(ThirdPartLibrariesInitializeJob::class.java)
+    override fun dependencies(): List<String> = listOf(ThirdPartLibrariesInitializeJob::class.java.name)
 
     @SuppressLint("MissingPermission")
     override fun run(context: Context) {

@@ -1,15 +1,25 @@
 package me.shouheng.startupsample
 
 import android.app.Application
+import android.content.Context
 import android.support.multidex.MultiDexApplication
-import android.text.TextUtils
 import me.shouheng.scheduler.process.IProcessMatcher
 import me.shouheng.scheduler.utils.ProcessUtils
 import me.shouheng.startup.launchStartup
+import me.shouheng.utils.UtilsApp
 import me.shouheng.utils.app.AppUtils
 import me.shouheng.utils.stability.L
 
+/**
+ * todo
+注解扫描组件化问题修复，获取实例的时候通过 constructor 进行反射而不是 new 的形式
+ */
 class Application : MultiDexApplication() {
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        UtilsApp.init(this)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -31,10 +41,8 @@ class Application : MultiDexApplication() {
                     ProcessUtils.getProcessName()?.replace(pkgName, "")
                 }
 
-                override fun match(target: String): Boolean {
-                    return TextUtils.isEmpty(target) || TextUtils.equals(target,
-                        currentProcess
-                    )
+                override fun match(target: List<String>): Boolean {
+                    return target.isEmpty() || target.contains(currentProcess)
                 }
             }
         }
@@ -44,7 +52,5 @@ class Application : MultiDexApplication() {
     companion object {
 
         private lateinit var application: Application
-
-        fun app() = application
     }
 }

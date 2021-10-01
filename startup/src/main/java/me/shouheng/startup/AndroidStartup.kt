@@ -12,8 +12,13 @@ import me.shouheng.scheduler.process.IProcessMatcher
 import me.shouheng.scheduler.process.ProcessMatcherImpl
 import java.util.concurrent.Executor
 
+@DslMarker annotation class StartupMarker
+
 /** The Android startup. */
-class AndroidStartup(private var context: Context, builder: AndroidStartupBuilder) {
+class AndroidStartup(
+    private var context: Context,
+    builder: AndroidStartupBuilder
+) {
     /** The job scheduler. */
     private var scheduler: Scheduler = createScheduler {
         jobs = builder.jobs
@@ -28,8 +33,7 @@ class AndroidStartup(private var context: Context, builder: AndroidStartupBuilde
     }
 }
 
-@StartupDSL
-class AndroidStartupBuilder(val context: Context) {
+@StartupMarker class AndroidStartupBuilder(val context: Context) {
     var executor: Executor? = null
     var logger: Logger? = null
     var matcher: IProcessMatcher = ProcessMatcherImpl
@@ -86,18 +90,21 @@ class AndroidStartupBuilder(val context: Context) {
 }
 
 /** Get an instance of android startup. */
-inline fun createStartup(context: Context, init: AndroidStartupBuilder.() -> Unit): AndroidStartup {
+inline fun createStartup(
+    context: Context,
+    init: AndroidStartupBuilder.() -> Unit
+): AndroidStartup {
     val builder = AndroidStartupBuilder(context)
     builder.apply(init)
     return AndroidStartup(context, builder)
 }
 
 /** Create and launch a startup. */
-inline fun launchStartup(context: Context, init: AndroidStartupBuilder.() -> Unit) {
+inline fun launchStartup(
+    context: Context,
+    init: AndroidStartupBuilder.() -> Unit
+) {
     val builder = AndroidStartupBuilder(context)
     builder.apply(init)
     AndroidStartup(context, builder).launch()
 }
-
-@DslMarker
-annotation class StartupDSL

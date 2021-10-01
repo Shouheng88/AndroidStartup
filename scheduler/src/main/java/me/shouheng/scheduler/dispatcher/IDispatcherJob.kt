@@ -13,6 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger
 /** The job for dispatcher. */
 interface IDispatcherJob {
 
+    /** Order of dispatcher job. @see [ISchedulerJob.priority] */
+    fun order(): Int
+
     /** Execute the job. */
     fun execute()
 
@@ -45,13 +48,19 @@ class DispatcherJob(
     private var waiting = AtomicInteger(0)
     private val mainThreadHandler = Handler(Looper.getMainLooper())
 
+    override fun order(): Int = job.priority()
+
     override fun execute() {
         val realJob = {
-            // Run the task if match given process.
-            if (matcher.match(job.targetProcess())) {
+            // 1. Run the task if match given process.
+            if (matcher.match(job.targetProcesses())) {
                 job.run(context)
             }
-            // No matter the task invoked in current process or not,
+
+            // 2. Then sort children task.
+            children.sortBy { child -> -child.order() }
+
+            // 3. No matter the task invoked in current process or not,
             // its children will be notified after that.
             children.forEach { it.notifyJobFinished(this) }
         }

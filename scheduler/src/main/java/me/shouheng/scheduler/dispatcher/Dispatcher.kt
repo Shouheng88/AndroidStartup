@@ -58,10 +58,10 @@ class Dispatcher : IDispatcher {
 
     /** Check if there is a cycle. */
     private fun checkDependencies() {
-        val checking = mutableSetOf<Class<out ISchedulerJob>>()
-        val checked = mutableSetOf<Class<out ISchedulerJob>>()
-        val schedulerMap = mutableMapOf<Class<ISchedulerJob>, ISchedulerJob>()
-        schedulerJobs.forEach { schedulerMap[it.javaClass] = it }
+        val checking = mutableSetOf<String>()
+        val checked = mutableSetOf<String>()
+        val schedulerMap = mutableMapOf<String, ISchedulerJob>()
+        schedulerJobs.forEach { schedulerMap[it.name()] = it }
         schedulerJobs.forEach { schedulerJob ->
             checkDependenciesReal(schedulerJob, schedulerMap, checking, checked)
         }
@@ -70,27 +70,26 @@ class Dispatcher : IDispatcher {
     /** Check dependencies for given job: miss and cycle. */
     private fun checkDependenciesReal(
         schedulerJob: ISchedulerJob,
-        map: Map<Class<ISchedulerJob>, ISchedulerJob>,
-        checking: MutableSet<Class<out ISchedulerJob>>,
-        checked: MutableSet<Class<out ISchedulerJob>>
+        map: Map<String, ISchedulerJob>,
+        checking: MutableSet<String>,
+        checked: MutableSet<String>
     ) {
-        if (checking.contains(schedulerJob.javaClass)) {
+        if (checking.contains(schedulerJob.name())) {
             // Cycle detected.
             throw SchedulerException("Cycle detected for ${schedulerJob.javaClass.name}.")
         }
-        if (!checked.contains(schedulerJob.javaClass)) {
-            checking.add(schedulerJob.javaClass)
+        if (!checked.contains(schedulerJob.name())) {
+            checking.add(schedulerJob.name())
             if (schedulerJob.dependencies().isNotEmpty()) {
                 schedulerJob.dependencies().forEach {
                     if (!checked.contains(it)) {
-                        val job = map[it]
-                            ?: throw SchedulerException(String.format("dependency [%s] not found", it.name))
+                        val job = map[it] ?: throw SchedulerException(String.format("Dependency [%s] not found", it))
                         checkDependenciesReal(job, map, checking, checked)
                     }
                 }
             }
-            checking.remove(schedulerJob.javaClass)
-            checked.add(schedulerJob.javaClass)
+            checking.remove(schedulerJob.name())
+            checked.add(schedulerJob.name())
         }
     }
 
@@ -98,24 +97,30 @@ class Dispatcher : IDispatcher {
     private fun buildDispatcherJobs() {
         roots.clear()
 
-        // Build the map from scheduler class type to dispatcher job.
-        val map =  mutableMapOf<Class<ISchedulerJob>, DispatcherJob>()
+        // Build the map from scheduler job type to dispatcher job.
+        val map =  mutableMapOf<String, DispatcherJob>()
         schedulerJobs.forEach {
             val dispatcherJob = DispatcherJob(this.globalContext, executor, matcher, it)
-            map[it.javaClass] = dispatcherJob
+            if (map.containsKey(it.name())) {
+                throw SchedulerException(String.format("Multiple jobs with same name: [%s]", it))
+            }
+            map[it.name()] = dispatcherJob
         }
 
         // Fill the parent field for dispatcher job.
         schedulerJobs.forEach { schedulerJob ->
-            val dispatcherJob = map[schedulerJob.javaClass]!!
+            val dispatcherJob = map[schedulerJob.name()]!!
             schedulerJob.dependencies().forEach {
+                if (!map.containsKey(it)) {
+                    throw SchedulerException(String.format("Pre-positive job with name [%s] not found", it))
+                }
                 dispatcherJob.addParent(map[it]!!)
             }
         }
 
         // Fill the children field for dispatcher job.
         schedulerJobs.forEach { schedulerJob ->
-            val dispatcherJob = map[schedulerJob.javaClass]!!
+            val dispatcherJob = map[schedulerJob.name()]!!
             dispatcherJob.parents().forEach {
                 it.addChild(dispatcherJob)
             }
@@ -125,9 +130,12 @@ class Dispatcher : IDispatcher {
         schedulerJobs.filter {
             it.dependencies().isEmpty()
         }.forEach {
-            val dispatcherJob = map[it.javaClass]!!
+            val dispatcherJob = map[it.name()]!!
             roots.add(dispatcherJob)
         }
+
+        // Sort roots.
+        roots.sortBy { -it.order() }
     }
 
 }
