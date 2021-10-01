@@ -3,3 +3,4 @@ project(':startup').projectDir = new File('../startup')
 project(':scheduler').projectDir = new File('../scheduler')
 project(':startup-compiler').projectDir = new File('../startup-compiler')
 project(':startup-annotation').projectDir = new File('../startup-annotation')
+include ':sub_module'
