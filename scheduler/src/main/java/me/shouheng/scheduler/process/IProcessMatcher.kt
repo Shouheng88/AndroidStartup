@@ -4,10 +4,10 @@ package me.shouheng.scheduler.process
 interface IProcessMatcher {
 
     /**
-     * Is the target process match the current process.
-     * True if the target is the same as current else not.
-     * The scheduler will only invoke the task match current process.
+     * Is the target processes match the current process.
+     * True if the target processes contains current process else not.
+     * The scheduler will only invoke the task match current processes.
      * Even the task may be skipped, its dependencies will still be notified.
      */
-    fun match(target: String): Boolean
+    fun match(target: List<String>): Boolean
 }

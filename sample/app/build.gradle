@@ -14,6 +14,11 @@ android {
         versionName "1.0"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [STARTUP_MODULE_NAME: project.getName()]
+            }
+        }
     }
     buildTypes {
         release {
@@ -79,8 +84,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     // modules
-//    implementation project(path: ':startup')
-//    kapt project(':startup-compiler')
-    implementation "com.github.Shouheng88:startup:1.0"
-    kapt "com.github.Shouheng88:startup-compiler:1.0"
+    implementation project(path: ':startup')
+    implementation project(path: ':sub_module')
+    kapt project(':startup-compiler')
+//    implementation "com.github.Shouheng88:startup:1.0"
+//    kapt "com.github.Shouheng88:startup-compiler:1.0"
 }

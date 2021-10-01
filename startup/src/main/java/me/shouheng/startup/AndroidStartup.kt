@@ -4,16 +4,19 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
-import me.shouheng.scheduler.ISchedulerJob
-import me.shouheng.scheduler.Logger
-import me.shouheng.scheduler.Scheduler
-import me.shouheng.scheduler.createScheduler
+import me.shouheng.scheduler.*
 import me.shouheng.scheduler.process.IProcessMatcher
 import me.shouheng.scheduler.process.ProcessMatcherImpl
+import me.shouheng.startup.utils.ClassUtils
 import java.util.concurrent.Executor
 
+@DslMarker annotation class StartupMarker
+
 /** The Android startup. */
-class AndroidStartup(private var context: Context, builder: AndroidStartupBuilder) {
+class AndroidStartup(
+    private var context: Context,
+    builder: AndroidStartupBuilder
+) {
     /** The job scheduler. */
     private var scheduler: Scheduler = createScheduler {
         jobs = builder.jobs
@@ -28,15 +31,14 @@ class AndroidStartup(private var context: Context, builder: AndroidStartupBuilde
     }
 }
 
-@StartupDSL
-class AndroidStartupBuilder(val context: Context) {
+@StartupMarker class AndroidStartupBuilder(val context: Context) {
     var executor: Executor? = null
     var logger: Logger? = null
     var matcher: IProcessMatcher = ProcessMatcherImpl
     var jobs: MutableList<ISchedulerJob> = mutableListOf()
 
-    /** The job hunter. */
-    private var jobHunter: JobHunter? = null
+    /** The job hunters. */
+    private var jobHunters: List<JobHunter>? = null
 
     /** Scan components. */
     fun scanComponents() {
@@ -68,16 +70,24 @@ class AndroidStartupBuilder(val context: Context) {
         }
     }
 
-    /** Scan annotations for job by [Job]. */
+    /** Scan annotations for job by [ISchedulerJob]. */
     fun scanAnnotations() {
         try {
-            if (jobHunter == null) {
-                val hunterImplClass = Class.forName("${JobHunter::class.java.name}Impl")
-                jobHunter = hunterImplClass.newInstance() as JobHunter
+            if (jobHunters == null) {
+                val hunters = mutableListOf<JobHunter>()
+                val hunterImplClasses = ClassUtils.getFileNameByPackageName(
+                    context, "me.shouheng.startup.hunter", executor?:DefaultExecutor.INSTANCE)
+                hunterImplClasses.forEach {
+                    val hunterImplClass = Class.forName(it)
+                    hunters.add(hunterImplClass.newInstance() as JobHunter)
+                }
+                jobHunters = hunters
             }
-            val jobs = jobHunter?.hunt()
-            jobs?.let {
-                this.jobs.addAll(it)
+            jobHunters?.forEach { jobHunter ->
+                val jobs = jobHunter.hunt()
+                jobs?.let {
+                    this.jobs.addAll(it)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -86,18 +96,21 @@ class AndroidStartupBuilder(val context: Context) {
 }
 
 /** Get an instance of android startup. */
-inline fun createStartup(context: Context, init: AndroidStartupBuilder.() -> Unit): AndroidStartup {
+inline fun createStartup(
+    context: Context,
+    init: AndroidStartupBuilder.() -> Unit
+): AndroidStartup {
     val builder = AndroidStartupBuilder(context)
     builder.apply(init)
     return AndroidStartup(context, builder)
 }
 
 /** Create and launch a startup. */
-inline fun launchStartup(context: Context, init: AndroidStartupBuilder.() -> Unit) {
+inline fun launchStartup(
+    context: Context,
+    init: AndroidStartupBuilder.() -> Unit
+) {
     val builder = AndroidStartupBuilder(context)
     builder.apply(init)
     AndroidStartup(context, builder).launch()
 }
-
-@DslMarker
-annotation class StartupDSL

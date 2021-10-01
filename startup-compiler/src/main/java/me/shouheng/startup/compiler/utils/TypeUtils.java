@@ -7,6 +7,8 @@ import com.squareup.javapoet.TypeName;
 /** Type definitions. */
 public class TypeUtils {
 
+    public static final String SEPARATOR = "$$";
+
     public static final ClassName CLASS_NAME_I_SCHEDULER_JOB =
             ClassName.get("me.shouheng.scheduler", "ISchedulerJob");
 

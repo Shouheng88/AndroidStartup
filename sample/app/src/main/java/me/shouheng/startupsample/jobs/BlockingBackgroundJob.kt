@@ -7,12 +7,14 @@ import me.shouheng.startup.annotation.StartupJob
 import me.shouheng.utils.ktx.toast
 import me.shouheng.utils.stability.L
 
-@StartupJob
-class BlockingBackgroundJob : ISchedulerJob {
+/** The job run on background. */
+@StartupJob class BlockingBackgroundJob : ISchedulerJob {
+
+    override fun name(): String = "blocking"
 
     override fun threadMode(): ThreadMode = ThreadMode.BACKGROUND
 
-    override fun dependencies(): List<Class<out ISchedulerJob>> = emptyList()
+    override fun dependencies(): List<String> = emptyList()
 
     override fun run(context: Context) {
         Thread.sleep(5_000L) // 5 seconds

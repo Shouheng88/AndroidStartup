@@ -1,6 +1,5 @@
 package me.shouheng.scheduler.process
 
-import android.text.TextUtils
 import me.shouheng.scheduler.utils.ProcessUtils
 
 /** The default matcher implementation for scheduler. */
@@ -17,10 +16,10 @@ object ProcessMatcherImpl : IProcessMatcher {
     }
 
     /**
-     * If the process is not specified or the process is same to current process,
-     * the true will be returned else false.
+     * If the processes contains current process or the task should
+     * run in all processes, this will return true else it return false.
      */
-    override fun match(target: String): Boolean {
-        return TextUtils.isEmpty(target) || TextUtils.equals(target, currentProcess)
+    override fun match(target: List<String>): Boolean {
+        return target.isEmpty() || target.contains(currentProcess)
     }
 }
