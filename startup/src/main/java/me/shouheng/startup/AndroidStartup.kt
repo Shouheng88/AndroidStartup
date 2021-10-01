@@ -4,12 +4,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
-import me.shouheng.scheduler.ISchedulerJob
-import me.shouheng.scheduler.Logger
-import me.shouheng.scheduler.Scheduler
-import me.shouheng.scheduler.createScheduler
+import me.shouheng.scheduler.*
 import me.shouheng.scheduler.process.IProcessMatcher
 import me.shouheng.scheduler.process.ProcessMatcherImpl
+import me.shouheng.startup.utils.ClassUtils
 import java.util.concurrent.Executor
 
 @DslMarker annotation class StartupMarker
@@ -39,8 +37,8 @@ class AndroidStartup(
     var matcher: IProcessMatcher = ProcessMatcherImpl
     var jobs: MutableList<ISchedulerJob> = mutableListOf()
 
-    /** The job hunter. */
-    private var jobHunter: JobHunter? = null
+    /** The job hunters. */
+    private var jobHunters: List<JobHunter>? = null
 
     /** Scan components. */
     fun scanComponents() {
@@ -72,16 +70,24 @@ class AndroidStartup(
         }
     }
 
-    /** Scan annotations for job by [Job]. */
+    /** Scan annotations for job by [ISchedulerJob]. */
     fun scanAnnotations() {
         try {
-            if (jobHunter == null) {
-                val hunterImplClass = Class.forName("${JobHunter::class.java.name}Impl")
-                jobHunter = hunterImplClass.newInstance() as JobHunter
+            if (jobHunters == null) {
+                val hunters = mutableListOf<JobHunter>()
+                val hunterImplClasses = ClassUtils.getFileNameByPackageName(
+                    context, "me.shouheng.startup.hunter", executor?:DefaultExecutor.INSTANCE)
+                hunterImplClasses.forEach {
+                    val hunterImplClass = Class.forName(it)
+                    hunters.add(hunterImplClass.newInstance() as JobHunter)
+                }
+                jobHunters = hunters
             }
-            val jobs = jobHunter?.hunt()
-            jobs?.let {
-                this.jobs.addAll(it)
+            jobHunters?.forEach { jobHunter ->
+                val jobs = jobHunter.hunt()
+                jobs?.let {
+                    this.jobs.addAll(it)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()

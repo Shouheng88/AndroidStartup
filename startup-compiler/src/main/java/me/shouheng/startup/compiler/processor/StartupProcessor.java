@@ -5,6 +5,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,8 +24,10 @@ import me.shouheng.startup.annotation.StartupJob;
 import me.shouheng.startup.compiler.entity.AnnotatedClass;
 import me.shouheng.startup.compiler.utils.TypeUtils;
 
+import static me.shouheng.startup.compiler.utils.Consts.GENERATED_FILES_PACKAGE;
 import static me.shouheng.startup.compiler.utils.TypeUtils.CLASS_NAME_ARRAY_LIST;
 import static me.shouheng.startup.compiler.utils.TypeUtils.CLASS_NAME_I_SCHEDULER_JOB;
+import static me.shouheng.startup.compiler.utils.TypeUtils.SEPARATOR;
 import static me.shouheng.startup.compiler.utils.TypeUtils.TYPE_NAME_LIST_OF_SCHEDULER_JOB;
 
 /** Annotation processor for startup Job annotation. */
@@ -97,17 +100,21 @@ public class StartupProcessor extends BaseProcessor {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("hunt")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(TYPE_NAME_LIST_OF_SCHEDULER_JOB)
+                .addException(NoSuchMethodException.class)
+                .addException(IllegalAccessException.class)
+                .addException(InvocationTargetException.class)
+                .addException(InstantiationException.class)
                 .addAnnotation(Override.class);
         builder.addStatement("List<$T> jobs = new $T<>()", CLASS_NAME_I_SCHEDULER_JOB, CLASS_NAME_ARRAY_LIST);
         for (AnnotatedClass annotatedClass : map.values()) {
-            builder.addStatement("jobs.add(new $T())", annotatedClass.getClassName());
+            builder.addStatement("jobs.add($T.class.getConstructor().newInstance())", annotatedClass.getClassName());
         }
         builder.addStatement("return jobs");
-        TypeSpec hunterImplClass = TypeSpec.classBuilder("JobHunterImpl")
+        TypeSpec hunterImplClass = TypeSpec.classBuilder("JobHunter" + SEPARATOR + moduleName)
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(TypeUtils.CLASS_NAME_JOB_HUNTER)
                 .addMethod(builder.build())
                 .build();
-        return JavaFile.builder("me.shouheng.startup", hunterImplClass).build();
+        return JavaFile.builder(GENERATED_FILES_PACKAGE, hunterImplClass).build();
     }
 }

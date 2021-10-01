@@ -23,7 +23,7 @@ interface ISchedulerJob {
 
     /**
      * The target processes of the scheduler job. Now you are able to
-     * specify multiple processes or "" by default for task running
+     * specify multiple processes or empty list by default for task running
      * on all processes.
      */
     fun targetProcesses(): List<String> = emptyList()
