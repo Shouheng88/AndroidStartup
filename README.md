@@ -1,5 +1,5 @@
 <h1 align="center">
-  Android Startup, schedule your startup jobs
+  Android 启动任务调度库
 </h1>
 
 <p align="center">
@@ -24,51 +24,104 @@
   </a>
 </P>
 
-## Introduction
+## 简介
 
-AndroidStartup is an open source project used to refine your Andriod App startup. Compared with Jetpack Startup, this project can used for **ASYNC** circumstance. As we konw, in most cases, to accelerate the App startup, we may run our jobs in background threads. You are allow to use background and main thread jobs and specify their dependencies in AndroidStarup. The AndroidStartup could handle their relations and run jobs by their dependencies.
+这里我只介绍下经过新的版本迭代之后该项目与其他项目的不同点。对于其基础的实现原理，可以参考我之前的文章 
+- [《异步、非阻塞式 Android 启动任务调度库》](https://www.fullstack.fan/posts/3c9957f0/)
+- [《更高级的 Android 启动任务调度库》](https://www.fullstack.fan/posts/10196514/)
 
-## Setup
+## 优势
 
-Add MavenCentral,
+### 1. 支持多种线程模型
+
+这是相对于 Jetpack 的启动任务库的优势，在指定任务的时候，你可以通过 `ISchedulerJob` 的 `threadMode()` 方法指定该任务执行的线程，当前支持主线程（`ThreadMode.MAIN`）和非主线程（`ThreadMode.BACKGROUND`）两种情况。前者在主线程当中执行，后者在线程池当中执行，同时，该库还允许你自定义自己的线程池。关于这块的实现原理可以参考之前的文章或者项目源码。
+
+### 2. 非阻塞的任务调度方式
+
+在之前的文章中也提到了，如果说采用 CountDownLatch 等阻塞的方式来实现任务调度，虽然不会占用主线程的 CPU，但是子线程会被阻塞，一样会导致 CPU 空转，影响程序执行的性能，尤其启动的时候大量任务执行时的情况。所以，在这个库的设计中，我们使用了通知唤醒的方式进行任务调度。也就是，
+
+### 3. 非 Class 的依赖方式
+
+之前在本项目中，以及其他的项目中可能采用了基于 Class 的形式进行任务依赖。这种使用方式存在一些问题，即在组件化开发的时候，Class 之间需要直接进行引用。这导致各个组件之间的强耦合。这显然不是我们希望的。
+
+所以，为了更好地支持组件化，在该库的新版本中，我们允许通过 `name()` 方法执行任务的名称，以及通过 ` dependencies()` 方法指定该任务依赖的其他任务的名称。`name()` 默认使用任务 Class 的全限定名。这样，当多个组件之间进行相互依赖的时候，只需要通过字符串指定名称而无需引用具体的类。
+
+### 4. 支持任务的优先级
+
+在实际开发中，我们可能会遇到需要为所有的根任务或者一个任务的所有的子任务指定执行的先后顺序的场景。或者在组件化中，存在依赖关系，但是我们希望某个根任务优先执行，但是不想为每个子任务都执行依赖关系的时候，我们可以通过指定这个任务的优先级为最高来使其最先被执行。你可以通过 `priority()` 方法传递一个 0 到 100 的整数来指定任务的优先级。
+
+*优先级局限于依赖关系相同的任务，所以是依赖关系的补充，不会造成歧义。*
+
+### 5. 支持指定任务执行的进程，可自定义进程匹配策略
+
+如果我们的项目支持多进程，而我们希望某些启动任务只在某个进程中执行而其他进程不需要执行，以此避免没必要的任务来提升任务执行的性能的时候，我们可以通过指定任务执行的进程来进行优化。你可以通过 `targetProcesses()` 传递一个进程的列表来指定该任务执行的所有进程。默认列表为空，表示运行在所有的进程。
+
+### 6. 支持注解形式的组件化调用
+
+在之前的版本中，通过 ContentProvider 的形式我们一样可以实现所有组件内任务的收集和调用。但是使用 ContentProvider 存在一些不便之处，比如 ContentProvider 的初始化实际在 Application 的 `attachBaseContext()`，如果我们的任务中一些操作需要放到 Application 的 `onCreate()` 中执行的时候，通过 ContentProvider 默认装载任务的调度方式就存在问题。而通过基于**注解 + APT**的形式，我们可以随意指定任务收集、整理和执行的时机，灵活性更好。
+
+## 使用
+
+### 1. 添加依赖
+
+添加 MavenCentral,
 
 ```groovy
 repositories { mavenCentral() }
 ```
 
-Add the dependency to use startup in your project,
+添加启动器依赖
 
 ```groovy
 implementation "com.github.Shouheng88:startup:$latest-version"
 ```
 
-If you want to use the `@StartupJob` annotation to define the job, append the below dependenc,
+如果需要使用基于注解 `@StartupJob` 的组件化任务调度，你需要添加如下依赖，
 
 ```groovy
 kapt "com.github.Shouheng88:startup-compiler:$latest-version"
 ```
 
-If you want just use the scheduler of startup, you can just use the scheduler by,
+然后，在每个组件的 gradle.build 脚本中添加如下代码，
+
+```groovy
+javaCompileOptions {
+    annotationProcessorOptions {
+        arguments = [STARTUP_MODULE_NAME: project.getName()]
+    }
+}
+```
+
+如果你只想使用任务调度器，只使用如下依赖即可，
 
 ```groovy
 implementation "com.github.Shouheng88:scheduler:$latest-version"
 ```
 
-## Initialize at Android Startup
+### 2. 定义任务
 
-You have multiple ways to use AndroidStartup.
+让你的任务类实现 ISchedulerJob 接口即可，
 
-### Implement ISchedulerJob to define your job
+```kotlin
+@StartupJob class BlockingBackgroundJob : ISchedulerJob {
 
-The `ISchedulerJob` interface is used to define the job in scheduler. You have to implement its three methods,
+    override fun name(): String = "blocking"
 
-- `threadMode()` to specify the thread job that the task will run
-- `dependencies()` dependeny jobs the current job relies on
-- `run()` the business for the job
+    override fun threadMode(): ThreadMode = ThreadMode.BACKGROUND
 
-### Set up manifest entries
+    override fun dependencies(): List<String> = emptyList()
 
-Android Startup includes a special content provider called `AndroidStartupProvider` that it uses to discover and call your scheduler jobs. Android Startup discovers jobs by first checking for a `<meta-data>` entry under the `AndroidStartupProvider` manifest entry. 
+    override fun run(context: Context) {
+        Thread.sleep(5_000L) // 5 seconds
+        L.d("BlockingBackgroundJob done! ${Thread.currentThread()}")
+        toast("BlockingBackgroundJob done!")
+    }
+}
+```
+
+### 3. 启动：通过 ContentProvider 启动任务
+
+示例代码如下，在每个组件内定义 ContentProvider 一样可以实现组件化，但是如文章所述，有一些限制，因此建议采用基于注解的组件化，
 
 ```xml
 <provider
@@ -87,11 +140,9 @@ Android Startup includes a special content provider called `AndroidStartupProvid
 </provider>
 ```
 
-The `tools:node="merge"` attribute ensures that the manifest merger tool properly resolves any conflicting entries.
+### 4. 启动：手动指定任务
 
-### Manually initialize jobs
-
-The Android Startup also allows you to initialize Startup by directly calling `AndroidStartup` builder. You can specify jobs by its `jobs()` method and then call `launch()` to start these jobs.
+示例代码，
 
 ```kotlin
 AndroidStartup.newInstance(this).jobs(
@@ -102,15 +153,34 @@ AndroidStartup.newInstance(this).jobs(
 ).launch()
 ```
 
-### Use @StartupJob annotation to initialize jobs
+### 5. 启动：基于注解 @StartupJob 的组件化调用
 
-You can alswo use `@StartupJob` to define jobs and then call `scanAnnotations()` method of `AndroidStartup` to scan jobs with `@StartupJob` annotation.
+首先为每个任务添加注解，
 
 ```kotlin
-AndroidStartup.newInstance(this).scanAnnotations().launch()
+@StartupJob class BlockingBackgroundJob : ISchedulerJob {
+
+    override fun name(): String = "blocking"
+
+    override fun threadMode(): ThreadMode = ThreadMode.BACKGROUND
+
+    override fun dependencies(): List<String> = emptyList()
+
+    override fun run(context: Context) {
+        Thread.sleep(5_000L) // 5 seconds
+        L.d("BlockingBackgroundJob done! ${Thread.currentThread()}")
+        toast("BlockingBackgroundJob done!")
+    }
+}
 ```
 
-To use the annotation driver you will have to add the `kotlin-kapt` plugin and the startup-compiler.
+然后，在你希望初始化的地方调用下面代码即可启动任务，
+
+```kotlin
+launchStartup(this) {
+    scanAnnotations()
+}
+```
 
 ## License
 
