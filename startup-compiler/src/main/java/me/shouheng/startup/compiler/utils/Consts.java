@@ -4,7 +4,7 @@ package me.shouheng.startup.compiler.utils;
 public class Consts {
 
     public static final String PROJECT = "Startup";
-    public static final String PREFIX_OF_LOGGER = PROJECT + "::Compiler";
+    public static final String PREFIX_OF_LOGGER = PROJECT + "::Compiler ";
 
     public static final String GENERATED_FILES_PACKAGE = "me.shouheng.startup.hunter";
 

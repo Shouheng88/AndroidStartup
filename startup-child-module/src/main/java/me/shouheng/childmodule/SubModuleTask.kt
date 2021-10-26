@@ -1,4 +1,4 @@
-package me.shouheng.submodule
+package me.shouheng.childmodule
 
 import android.content.Context
 import android.util.Log

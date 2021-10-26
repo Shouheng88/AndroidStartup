@@ -1,6 +1,7 @@
-include ':app', ':startup', ':scheduler', ':startup-compiler', ':startup-annotation'
+include ':app', ':startup', ':scheduler', ':startup-compiler', ':startup-annotation', ':startup-gradle-plugin', ':startup-child-module'
 project(':startup').projectDir = new File('../startup')
 project(':scheduler').projectDir = new File('../scheduler')
 project(':startup-compiler').projectDir = new File('../startup-compiler')
 project(':startup-annotation').projectDir = new File('../startup-annotation')
-include ':sub_module'
+project(':startup-gradle-plugin').projectDir = new File('../startup-gradle-plugin')
+project(':startup-child-module').projectDir = new File('../startup-child-module')

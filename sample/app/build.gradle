@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'me.shouheng.startup'
 }
 
 android {
@@ -85,7 +86,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     // modules
     implementation project(path: ':startup')
-    implementation project(path: ':sub_module')
+    implementation project(path: ':startup-child-module')
     kapt project(':startup-compiler')
 //    implementation "com.github.Shouheng88:startup:1.0"
 //    kapt "com.github.Shouheng88:startup-compiler:1.0"

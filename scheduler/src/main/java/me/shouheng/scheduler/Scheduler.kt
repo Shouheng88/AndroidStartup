@@ -9,7 +9,12 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 
 /** The scheduler */
-class Scheduler constructor(builder: SchedulerBuilder) {
+class Scheduler constructor(
+    executor: Executor? = null,
+    logger: Logger? = null,
+    matcher: IProcessMatcher? = null,
+    jobs: List<ISchedulerJob> = mutableListOf()
+) {
 
     /** All jobs for current scheduler */
     private val schedulerJobs = CopyOnWriteArrayList<ISchedulerJob>()
@@ -24,11 +29,11 @@ class Scheduler constructor(builder: SchedulerBuilder) {
     private var matcher: IProcessMatcher? = null
 
     init {
-        this.logger = builder.logger ?: logger
-        this.executor = builder.executor ?: executor
-        this.matcher = builder.matcher
+        this.logger = logger ?: this.logger
+        this.executor = executor ?: this.executor
+        this.matcher = matcher
         this.dispatcher = Dispatcher()
-        this.schedulerJobs.addAll(builder.jobs)
+        this.schedulerJobs.addAll(jobs)
     }
 
     /** Launch the scheduler. [context] here should be the global context. */
@@ -43,20 +48,38 @@ class Scheduler constructor(builder: SchedulerBuilder) {
     }
 }
 
-@SchedulerDSL
-class SchedulerBuilder {
-    var executor: Executor? = null
-    var logger: Logger? = null
-    var matcher: IProcessMatcher? = null
-    var jobs: MutableList<ISchedulerJob> = mutableListOf()
+@SchedulerDSL class SchedulerBuilder {
+    private var executor: Executor? = null
+    private var logger: Logger? = null
+    private var matcher: IProcessMatcher? = null
+    private var jobs: List<ISchedulerJob> = mutableListOf()
+
+    fun withExecutor(executor: Executor) {
+        this.executor = executor
+    }
+
+    fun withLogger(logger: Logger) {
+        this.logger = logger
+    }
+
+    fun withProcessMatcher(matcher: IProcessMatcher) {
+        this.matcher = matcher
+    }
+
+    fun withJobs(jobs: MutableList<ISchedulerJob>) {
+        this.jobs = jobs
+    }
+
+    internal fun build(): Scheduler {
+        return Scheduler(executor, logger, matcher, jobs)
+    }
 }
 
 /** Create an scheduler by DSL. */
-inline fun createScheduler(init: SchedulerBuilder.() -> Unit): Scheduler {
+fun createScheduler(init: SchedulerBuilder.() -> Unit): Scheduler {
     val builder = SchedulerBuilder()
     builder.apply(init)
-    return Scheduler(builder)
+    return builder.build()
 }
 
-@DslMarker
-annotation class SchedulerDSL
+@DslMarker annotation class SchedulerDSL
